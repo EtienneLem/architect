@@ -131,4 +131,5 @@ Alias for `Architect.workOn(jobName, url, 'jsonp', callback)`.
 You’ll need to serve the [worker files](/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](/static/architect.min.js) to your HTML pages.
 
 ## Todo
+- Tests
 - Support Shared Workers [[See #3](https://github.com/EtienneLem/architect/issues/3)]
