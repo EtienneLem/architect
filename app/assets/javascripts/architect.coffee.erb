@@ -1,0 +1,32 @@
+#= require ./architect/version
+#= require ./architect/worker
+
+# Constants
+@Architect.SUPPORT_WORKER = !!window.Worker
+@Architect.WORKERS =
+  proxy: { polyfill: @Architect.ProxyWorker, workerPath: '<%= Architect.worker_path("proxy") %>' }
+  ajax:  { polyfill: @Architect.AjaxWorker,  workerPath: '<%= Architect.worker_path("ajax") %>'  }
+  jsonp: { polyfill: @Architect.JSONPWorker, workerPath: '<%= Architect.worker_path("jsonp") %>' }
+
+# Private methods
+spawnWorker = (type) ->
+  return new @Architect.WORKERS[type].polyfill unless @Architect.SUPPORT_WORKER
+  new Worker(@Architect.WORKERS[type].workerPath)
+
+# Public API
+@Architect.work = (data, type, callback) ->
+  if typeof type is 'function'
+    callback = type
+    type = undefined
+
+  type = 'proxy' if type is undefined
+
+  worker = spawnWorker(type)
+  worker.postMessage(data)
+  worker.addEventListener 'message', (e) =>
+    worker.terminate()
+    callback(e.data)
+
+@Architect.proxy = (data, callback) => @Architect.work(data, 'proxy', callback)
+@Architect.ajax  = (url,  callback) => @Architect.work(url,  'ajax',  callback)
+@Architect.jsonp = (url,  callback) => @Architect.work(url,  'jsonp', callback)
