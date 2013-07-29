@@ -13,20 +13,36 @@ spawnWorker = (type) ->
   return new @Architect.WORKERS[type].polyfill unless @Architect.SUPPORT_WORKER
   new Worker(@Architect.WORKERS[type].workerPath)
 
-# Public API
+# Short-lived workers
 @Architect.work = (data, type, callback) ->
-  if typeof type is 'function'
-    callback = type
-    type = undefined
-
-  type = 'proxy' if type is undefined
-
   worker = spawnWorker(type)
   worker.postMessage(data)
-  worker.addEventListener 'message', (e) =>
+  worker.addEventListener 'message', (e) ->
     worker.terminate()
     callback(e.data)
 
 @Architect.proxy = (data, callback) => @Architect.work(data, 'proxy', callback)
 @Architect.ajax  = (url,  callback) => @Architect.work(url,  'ajax',  callback)
 @Architect.jsonp = (url,  callback) => @Architect.work(url,  'jsonp', callback)
+
+# Long-lived workers
+jobs = {}
+@Architect.workOn = (jobName, data, type, callback) ->
+  alreadySpawned = !!jobs[jobName]
+
+  worker = jobs[jobName] ||= spawnWorker(type)
+  worker.postMessage(data)
+
+  return if alreadySpawned
+  worker.addEventListener 'message', (e) ->
+    callback(e.data)
+
+@Architect.endJob = (jobName) ->
+  return unless worker = jobs[jobName]
+
+  worker.terminate()
+  delete jobs[jobName]
+
+@Architect.proxyOn = (jobName, data, callback) => @Architect.workOn(jobName, data, 'proxy', callback)
+@Architect.ajaxOn  = (jobName, url,  callback) => @Architect.workOn(jobName, url,  'ajax',  callback)
+@Architect.jsonpOn = (jobName, url,  callback) => @Architect.workOn(jobName, url,  'jsonp', callback)

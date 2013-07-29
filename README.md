@@ -9,12 +9,14 @@
   He will manage and polyfill them workers so you don’t have to.
 </p>
 
-## Methods
+## Short-lived workers
+These will be automatically terminated as soon as the work is done. It will spawn a new worker every time.
+
 ### proxy
 Returns anything it receives in a background process. Useful when dealing with heavy DOM manipulation (i.e. Infinite scroll). It greatly improves initial page load speed, especially on mobiles.
 
 ```js
-images = ['foo.png', 'bar.png', 'twiz.png', 'foozle.png', 'barzle.png', 'twizle.png']
+var images = ['foo.png', 'bar.png', 'twiz.png', 'foozle.png', 'barzle.png', 'twizle.png']
 Architect.proxy(images, function(data) {
   console.log(data)
   // => ['foo.png', 'bar.png', 'twiz.png', 'foozle.png', 'barzle.png', 'twizle.png']
@@ -54,6 +56,71 @@ Architect.jsonp('https://api.github.com/users/etiennelem', function(data) {
 
 Alias for `Architect.work(url, 'jsonp', callback)`.
 
+## Long-lived workers
+These need to be manually terminated when the work is done. The same worker can therefore be reused many times with different data.
+
+### proxyOn
+```js
+var images, jobName, imagesCount
+
+images = ['foo.png', 'bar.png', 'twiz.png', 'foozle.png', 'barzle.png', 'twizle.png']
+jobName = 'appendImages'
+imagesCount = 0
+
+images.forEach(function(image) {
+  Architect.proxyOn(jobName, image, function(data) {
+    imagesCount++
+
+    img = document.createElement('img')
+    img.src = data
+    document.body.appendChild(img)
+
+    if (imagesCount == images.length) { Architect.endJob(jobName) }
+  })
+})
+```
+
+Alias for `Architect.workOn(jobName, data, 'proxy', callback)`.
+
+### ajaxOn
+```js
+var totalPages, jobName, queryApi
+
+totalPages = 10
+jobName = 'getUsers'
+
+queryApi = function(page) {
+  Architect.ajaxOn(jobName, '/users?page=' + page, function(data) {
+    // [Add DOM elements, do your thing ;)]
+
+    if (page == totalPages) {
+      // Manually terminate the 'getUsers' ajax worker
+      Architect.endJob(jobName)
+      console.log('Done')
+    } else {
+      // Reuse the same worker
+      queryApi(page + 1)
+    }
+  })
+}
+
+queryApi(1)
+```
+
+Alias for `Architect.workOn(jobName, url, 'ajax', callback)`.
+
+### jsonpOn
+```js
+Architect.jsonpOn('profile', 'https://api.github.com/users/etiennelem', function(data) {
+  console.log(data);
+  // => { meta: { status: 200, … }, data: { login: 'EtienneLem', company: 'Heliom', … } }
+
+  Architect.endJob('profile')
+})
+```
+
+Alias for `Architect.workOn(jobName, url, 'jsonp', callback)`.
+
 ## Setup
 ### Rails
 1. Add `gem 'architect'` to your Gemfile.
@@ -64,5 +131,4 @@ Alias for `Architect.work(url, 'jsonp', callback)`.
 You’ll need to serve the [worker files](/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](/static/architect.min.js) to your HTML pages.
 
 ## Todo
-- A way to reuse the same worker (and stop it) [[See #1](https://github.com/EtienneLem/architect/issues/1)]
 - Support Shared Workers [[See #3](https://github.com/EtienneLem/architect/issues/3)]
