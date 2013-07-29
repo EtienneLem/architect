@@ -27,15 +27,15 @@ spawnWorker = (type) ->
 
 # Long-lived workers
 jobs = {}
-@Architect.workOn = (jobName, data, type, callback) ->
+@Architect.workOn = (jobName, data, type, @workOnCallback) ->
   alreadySpawned = !!jobs[jobName]
 
   worker = jobs[jobName] ||= spawnWorker(type)
   worker.postMessage(data)
 
   return if alreadySpawned
-  worker.addEventListener 'message', (e) ->
-    callback(e.data)
+  worker.addEventListener 'message', (e) =>
+    @workOnCallback(e.data)
 
 @Architect.endJob = (jobName) ->
   return unless worker = jobs[jobName]
