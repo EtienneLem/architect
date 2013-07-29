@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = 'Architect is a JavaScript library built on top of Web Workers that will handle and polyfill HTML Web Workers.'
   s.license     = 'MIT'
 
-  s.files = Dir['{app,lib,static}/**/*', 'Rakefile', 'MIT-LICENSE', 'README.md']
+  s.files = Dir['{app,lib,static}/**/*', 'Rakefile', 'MIT-LICENSE', 'README.md', 'CHANGELOG.md']
 
   s.add_dependency 'coffee-rails'
 
