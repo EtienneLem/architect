@@ -1,3 +1,6 @@
+## [v0.0.4](https://github.com/EtienneLem/architect/tree/v0.0.4)
+- Add worker files to precompile list
+
 ## [v0.0.3](https://github.com/EtienneLem/architect/tree/v0.0.3)
 - Fix long-lived workers callback bug
 
