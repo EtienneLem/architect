@@ -12,6 +12,7 @@ class @Architect.Worker
 
     return unless data = @callbacksQueue[type]
     delete @callbacksQueue[type]
+
     this.dispatch(type, data)
 
   dispatch: (type, data) ->
