@@ -2,12 +2,12 @@ class @Architect.JSONPWorker extends @Architect.Worker
 
   constructor: ->
     super()
-    @jsonpID = 0
+    window.jsonpID ||= 0
 
   postMessage: (url) ->
     tmpScript = document.createElement('script')
 
-    callbackName = 'architect_jsonp' + (++@jsonpID)
+    callbackName = 'architect_jsonp' + (++window.jsonpID)
     window[callbackName] = (data) =>
       delete window[callbackName]
       document.head.removeChild(tmpScript)
