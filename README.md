@@ -132,4 +132,5 @@ You’ll need to serve the [worker files](/static/workers) at `/architect` (i.e.
 
 ## Todo
 - Tests
+- Support custom worker files
 - Support Shared Workers [[See #3](https://github.com/EtienneLem/architect/issues/3)]
