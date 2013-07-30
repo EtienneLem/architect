@@ -1,3 +1,6 @@
+## [v0.0.5](https://github.com/EtienneLem/architect/tree/v0.0.5)
+- Make JSONP callback count a global variable
+
 ## [v0.0.4](https://github.com/EtienneLem/architect/tree/v0.0.4)
 - Add worker files to precompile list
 
