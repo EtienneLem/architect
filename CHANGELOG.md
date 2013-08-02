@@ -1,3 +1,6 @@
+## [v0.0.6](https://github.com/EtienneLem/architect/tree/v0.0.6)
+- Custom workers support
+
 ## [v0.0.5](https://github.com/EtienneLem/architect/tree/v0.0.5)
 - Make JSONP callback count a global variable
 
