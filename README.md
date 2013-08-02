@@ -121,6 +121,32 @@ Architect.jsonpOn('profile', 'https://api.github.com/users/etiennelem', function
 
 Alias for `Architect.workOn(jobName, url, 'jsonp', callback)`.
 
+## Custom workers
+You can use Architect with your own workers. Just remember that if you want to be compatible with all the old browsers you need to optionally provide a fallback function that replicates your worker’s work.
+
+### workFrom
+```js
+// workers/foozle.js
+addEventListener('message', function(e) {
+  data = (e.data + 'zle').toUpperCase()
+  postMessage(data)
+})
+```
+
+```js
+// application.js
+
+// Replicates workers/foozle.js, but in the main thread
+var foozleFallback = function(data) {
+  return (data + 'zle').toUpperCase()
+}
+
+Architect.workFrom('workers/foozle.js', 'foo', foozleFallback, function(data) {
+  console.log(data)
+  // => FOOZLE
+})
+```
+
 ## Setup
 ### Rails
 1. Add `gem 'architect'` to your Gemfile.
@@ -132,5 +158,4 @@ You’ll need to serve the [worker files](/static/workers) at `/architect` (i.e.
 
 ## Todo
 - Tests
-- Support custom worker files
 - Support Shared Workers [[See #3](https://github.com/EtienneLem/architect/issues/3)]

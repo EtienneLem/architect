@@ -46,3 +46,16 @@ jobs = {}
 @Architect.proxyOn = (jobName, data, callback) => @Architect.workOn(jobName, data, 'proxy', callback)
 @Architect.ajaxOn  = (jobName, url,  callback) => @Architect.workOn(jobName, url,  'ajax',  callback)
 @Architect.jsonpOn = (jobName, url,  callback) => @Architect.workOn(jobName, url,  'jsonp', callback)
+
+# Custom workers
+@Architect.workFrom = (workerPath, data, fallback=null, callback) =>
+  if @Architect.SUPPORT_WORKER
+    worker = new Worker(workerPath)
+    worker.postMessage(data)
+    worker.addEventListener 'message', (e) ->
+      worker.terminate()
+      callback(e.data)
+  else if fallback
+    callback(fallback(data))
+  else
+    console.warn "No fallback provided for #{workerPath}"
