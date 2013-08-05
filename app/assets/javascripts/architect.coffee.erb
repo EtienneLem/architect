@@ -9,9 +9,17 @@
   jsonp: { polyfill: @Architect.JSONPWorker, workerPath: '<%= Architect.worker_path("jsonp") %>' }
 
 # Private methods
+getWorkersPath = (type) ->
+  return @Architect.WORKERS[type].workerPath unless @Architect.workersPath
+  "#{@Architect.workersPath}/#{type}_worker.min.js"
+
 spawnWorker = (type) ->
   return new @Architect.WORKERS[type].polyfill unless @Architect.SUPPORT_WORKER
-  new Worker(@Architect.WORKERS[type].workerPath)
+  new Worker(getWorkersPath(type))
+
+# Config
+@Architect.setupWorkersPath = (path) =>
+  @Architect.workersPath = path.replace(/\/$/, '')
 
 # Short-lived workers
 @Architect.work = (data, type, callback) ->
