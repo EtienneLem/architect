@@ -10,7 +10,7 @@ end
   35 => 'magenta',
   36 => 'cyan',
 }.each do |code, color|
-  define_method(color) { |text| colorize(text, code) }
+  Kernel.send(:define_method, color) { |text| colorize(text, code) }
 end
 
 def error(text);   puts red('ERROR: ') + text; end
