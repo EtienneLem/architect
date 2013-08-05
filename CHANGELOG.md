@@ -1,3 +1,7 @@
+## [v0.0.7](https://github.com/EtienneLem/architect/tree/v0.0.7)
+- Serve your workers from any path
+- Make `workFrom` fallback optional
+
 ## [v0.0.6](https://github.com/EtienneLem/architect/tree/v0.0.6)
 - Custom workers support
 
