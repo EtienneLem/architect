@@ -57,6 +57,10 @@ jobs = {}
 
 # Custom workers
 @Architect.workFrom = (workerPath, data, fallback=null, callback) =>
+  if callback is undefined
+    callback = fallback
+    fallback = null
+
   if @Architect.SUPPORT_WORKER
     worker = new Worker(workerPath)
     worker.postMessage(data)
