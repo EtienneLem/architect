@@ -17,6 +17,11 @@ task :compile do
   compile('workers/jsonp_worker.js')
 end
 
+desc 'Run tests'
+task :test do
+  puts `phantomjs test/runner.js test/index.html`
+end
+
 task :default => :compile
 
 def compile(file)
