@@ -156,5 +156,15 @@ Architect.workFrom('workers/foozle.js', 'foo', foozleFallback, function(data) {
 ### Other
 You’ll need to serve the [worker files](/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](/static/architect.min.js) to your HTML pages.
 
-## Todo
-- Tests
+#### Custom path
+You can also specify any path you want to serve the workers from.
+
+```js
+Architect.setupWorkersPath('fake/path')
+Architect.proxy('Foo', function(data) {
+  // => Uses http://yourdomain.com/fake/path/proxy_worker.min.js
+})
+```
+
+## Tests
+Run the `rake test` task.
