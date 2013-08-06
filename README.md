@@ -9,6 +9,10 @@
   He will manage and polyfill them workers so you don’t have to.
 </p>
 
+<p align="center">
+  <a href="http://badge.fury.io/rb/architect"><img src="https://badge.fury.io/rb/architect@2x.png" alt="Gem Version" height="18"></a>
+</p>
+
 ## Short-lived workers
 These will be automatically terminated as soon as the work is done. It will spawn a new worker every time.
 
@@ -154,7 +158,7 @@ Architect.workFrom('workers/foozle.js', 'foo', foozleFallback, function(data) {
 3. Restart your server and you'll have access to your very own Architect!
 
 ### Other
-You’ll need to serve the [worker files](/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](/static/architect.min.js) to your HTML pages.
+You’ll need to serve the [worker files](https://github.com/EtienneLem/architect/tree/master/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](https://github.com/EtienneLem/architect/tree/master/static/architect.min.js) to your HTML pages.
 
 #### Custom path
 You can also specify any path you want to serve the workers from.
