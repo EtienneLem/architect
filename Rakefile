@@ -27,6 +27,21 @@ task :default => :compile
 def compile(file)
   minjs = @environment[file].to_s
   out = "static/#{file.sub('.js', '.min.js')}"
-  File.open(out, 'w') { |f| f.write(minjs) }
+
+  File.open(out, 'w') { |f| f.write(copyright + minjs + "\n") }
   success "Compiled #{out}"
+end
+
+def copyright
+  @copyright ||= <<-EOS
+/*
+* Architect v#{Architect::VERSION}
+* http://architectjs.org
+*
+* Copyright 2013, Etienne Lemay http://heliom.ca
+* Released under the MIT license
+*
+* Date: #{Time.now}
+*/
+EOS
 end
