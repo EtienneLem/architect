@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.version     = Architect::VERSION
   s.authors     = ['Etienne Lemay']
   s.email       = ['etienne@heliom.ca']
-  s.homepage    = 'https://github.com/EtienneLem/architect'
+  s.homepage    = 'http://architectjs.org'
   s.summary     = 'Your web workers’ supervisor'
   s.description = 'Architect is a JavaScript library built on top of Web Workers that will handle and polyfill HTML Web Workers.'
   s.license     = 'MIT'
