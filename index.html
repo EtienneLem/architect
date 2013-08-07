@@ -2,19 +2,24 @@
 <html>
   <head>
     <title>Architect</title>
+    <link rel="shortcut icon" href="./favicon.png" type="image/png">
 
-    <style>
-      img { float: none !important }
-      #content { max-width: none !important }
-    </style>
-
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/documentup/0.1.1/documentup.min.js"></script>
+    <script src="./documentup.min.js"></script>
     <script>
       DocumentUp.document({
         repo: 'EtienneLem/architect',
         name: 'Architect',
         google_analytics: 'UA-31026266-7',
-        twitter: 'EtienneLem'
+        twitter: 'EtienneLem',
+        theme: 'v1',
+        afterRender: function(data) {
+          var head = document.getElementsByTagName("head")[0];
+
+          var stylesheet = document.createElement("link");
+              stylesheet.rel = "stylesheet"; stylesheet.type = "text/css"; stylesheet.href = "./custom.css";
+
+          head.appendChild(stylesheet);
+        }
       })
     </script>
   </head>
