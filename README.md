@@ -158,7 +158,7 @@ Architect.workFrom('workers/foozle.js', 'foo', foozleFallback, function(data) {
 3. Restart your server and you'll have access to your very own Architect!
 
 ### Other
-You’ll need to serve the [worker files](https://github.com/EtienneLem/architect/tree/master/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](https://github.com/EtienneLem/architect/tree/master/static/architect.min.js) to your HTML pages.
+You’ll need to serve the [worker files](https://github.com/EtienneLem/architect/tree/master/static/workers) at `/architect` (i.e. `http://foo.com/architect/proxy_worker.min.js`) and manually include [architect.min.js](https://github.com/EtienneLem/architect/tree/master/static/architect.min.js) to your HTML pages. Architect is also hosted on [cdnjs.com](http://cdnjs.com).
 
 #### Custom path
 You can also specify any path you want to serve the workers from.
