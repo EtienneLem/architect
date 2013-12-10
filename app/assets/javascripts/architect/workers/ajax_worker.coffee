@@ -3,6 +3,7 @@ class @Architect.AjaxWorker extends @Architect.Worker
   postMessage: (url) ->
     xhr = new XMLHttpRequest
     xhr.open('GET', url)
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
 
     xhr.onreadystatechange = (e) =>
       return unless xhr.readyState is 4 && xhr.status is 200

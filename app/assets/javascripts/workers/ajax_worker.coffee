@@ -4,6 +4,8 @@ handleRequest = (data) ->
 addEventListener 'message', (e) ->
   xhr = new XMLHttpRequest
   xhr.open('GET', e.data)
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+
   xhr.onreadystatechange = (e) ->
     return unless xhr.readyState is 4 && xhr.status is 200
     handleRequest(xhr.responseText)
