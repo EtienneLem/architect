@@ -1,3 +1,6 @@
+## [v0.1.0](https://github.com/EtienneLem/architect/tree/v0.1.0)
+- Add X-Requested-With header to xhr request
+
 ## [v0.0.7](https://github.com/EtienneLem/architect/tree/v0.0.7)
 - Serve your workers from any path
 - Make `workFrom` fallback optional
