@@ -1,10 +1,16 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[lib])
 require 'tasks/task_helpers'
 
+# Rubygems
+require 'bundler'
+Bundler::GemHelper.install_tasks
+
+# Dependencies
 require 'uglifier'
 require 'architect'
 require 'sprockets'
 
+# Tasks
 desc 'Merge, compiles and minify CoffeeScript files'
 task :compile do
   @environment = Sprockets::Environment.new
