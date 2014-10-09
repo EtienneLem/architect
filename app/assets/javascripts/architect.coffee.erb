@@ -27,11 +27,19 @@ spawnWorker = (type) ->
   worker.postMessage(data)
   worker.addEventListener 'message', (e) ->
     worker.terminate()
-    callback(e.data)
+    callback?(e.data)
 
 @Architect.proxy = (data, callback) => @Architect.work(data, 'proxy', callback)
-@Architect.ajax  = (url,  callback) => @Architect.work(url,  'ajax',  callback)
 @Architect.jsonp = (url,  callback) => @Architect.work(url,  'jsonp', callback)
+
+@Architect.ajax = (opts) =>
+  { success, error } = opts
+  delete opts.success
+  delete opts.error
+
+  @Architect.work opts, 'ajax', (data) =>
+    success?(result) if result = data.success
+    error?(xhr) if xhr = data.error
 
 # Long-lived workers
 jobs = {}
@@ -43,7 +51,7 @@ jobs = {}
 
   return if alreadySpawned
   worker.addEventListener 'message', (e) =>
-    @workOnCallback(e.data)
+    @workOnCallback?(e.data)
 
 @Architect.endJob = (jobName) ->
   return unless worker = jobs[jobName]
@@ -66,8 +74,8 @@ jobs = {}
     worker.postMessage(data)
     worker.addEventListener 'message', (e) ->
       worker.terminate()
-      callback(e.data)
+      callback?(e.data)
   else if fallback
-    callback(fallback(data))
+    callback?(fallback(data))
   else
     console.warn "No fallback provided for #{workerPath}"
