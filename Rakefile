@@ -46,8 +46,6 @@ def copyright
 *
 * Copyright 2013, Etienne Lemay http://heliom.ca
 * Released under the MIT license
-*
-* Date: #{Time.now}
 */
 EOS
 end
