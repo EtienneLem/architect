@@ -38,8 +38,8 @@ spawnWorker = (type) ->
   delete opts.error
 
   @Architect.work opts, 'ajax', (data) =>
-    success?(data.success) if 'success' in data
-    error?(data.error) if 'error' in data
+    success?(data.success) if 'success' of data
+    error?(data.error) if 'error' of data
 
 # Long-lived workers
 jobs = {}
