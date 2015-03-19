@@ -1,0 +1,34 @@
+{
+  "name": "architect",
+  "version": "0.2.0",
+  "description": "Architect is a JavaScript library built on top of Web Workers that will handle and polyfill HTML Web Workers",
+  "main": "dist/architect.min.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EtienneLem/architect.git"
+  },
+  "scripts": {
+    "start": "./node_modules/.bin/gulp"
+  },
+  "keywords": [
+    "architect",
+    "workers",
+    "web workers"
+  ],
+  "author": "Etienne Lemay <etienne@heliom.ca>",
+  "license": "MIT",
+  "homepage": "https://github.com/EtienneLem/architect",
+  "bugs": {
+    "url": "https://github.com/EtienneLem/architect/issues"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.7.1",
+    "del": "^1.1.1",
+    "gulp": "^3.8.10",
+    "gulp-connect": "^2.2.0",
+    "gulp-webpack": "^1.2.0",
+    "expose-loader": "^0.6.0",
+    "coffee-loader": "^0.7.2",
+    "webpack": "^1.5.3"
+  }
+}
