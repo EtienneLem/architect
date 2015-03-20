@@ -11,10 +11,11 @@ class JSONPWorkerPolyfill extends WorkerPolyfill
       @jsonpID ||= 0
       callbackFnName = 'architect_jsonp' + (++@jsonpID)
 
-    window[callbackFnName] = (response) =>
+    window[callbackFnName] = (args...) =>
       delete window[callbackFnName]
       this.removeScript()
-      this.handleRequest(response)
+      args = if args.length > 1 then args else args[0]
+      this.handleRequest(args)
 
     request = if callbackAttribute then this.appendQuery(url, "#{callbackAttribute}=#{callbackFnName}") else url
     this.addScript(request)
