@@ -7,6 +7,8 @@ var examples = {
 
   entry: {
     'short_lived_workers_example': ['./examples/short_lived_workers/app.js'],
+    'custom_workers_example': ['./examples/custom_workers/app.js'],
+    'workers/custom_worker': ['./examples/custom_workers/workers/custom_worker.js'],
   },
 
   output: {

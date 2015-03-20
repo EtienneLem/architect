@@ -24,33 +24,44 @@ class Architect
     @workersSupported ?= !!window.Worker
 
   # Short-lived workers
-  work: (data, type) ->
+  work: ({ data, type, worker }) ->
     new Promise (resolve) =>
-      worker = this.spawnWorker(type)
+      worker ||= this.spawnWorker(type)
       worker.postMessage(data)
       worker.addEventListener 'message', (e) ->
         worker.terminate()
         resolve(e.data)
 
-  jsonp: (data, options = {}) ->
+  jsonp: (data) ->
     if typeof data is 'string'
       data = { url: data }
 
-    this.work(data, 'jsonp')
+    this.work(data: data, type: 'jsonp')
 
-  ajax: (options = {}) ->
+  ajax: (options) ->
     { success, error } = options
     delete options.success
     delete options.error
 
     new Promise (resolve, reject) =>
-      this.work(options, 'ajax').then (data) ->
+      this.work(data: options, type: 'ajax').then (data) ->
         if 'success' of data
           resolve(data.success)
           success?(data.success)
         else if 'error' of data
           reject(data.error)
           error?(data.error)
+
+  # Custom workers
+  custom: ({ path, data, fallback }) ->
+    new Promise (resolve, reject) =>
+      if this.workersAreSupported()
+        worker = new Worker(path)
+        this.work(data: data, worker: worker).then(resolve)
+      else if fallback
+        resolve(fallback(data))
+      else
+        reject("Workers not supported and fallback not provided for #{path}")
 
 # Export
 module.exports = Architect
