@@ -13,6 +13,12 @@ describe 'Architect', ->
         this.dispatchEvent(event)
       , 0
 
+  it 'has defaults', ->
+    architect = new Architect
+    expect(architect.workersPath).to.eq('/workers')
+    expect(architect.workersSuffix).to.eq('_worker.min.js')
+    expect(architect.threads).to.eq(5)
+
   describe '#getWorkersPathForType',  ->
     it 'returns a relative worker path', ->
       architect = new Architect
