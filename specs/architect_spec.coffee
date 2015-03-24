@@ -6,6 +6,13 @@ describe 'Architect', ->
       workersPath: '/build/workers'
       workersSuffix: '_worker.js'
 
+    simple.mock window.Worker.prototype, 'postMessage', (data) ->
+      setTimeout =>
+        event = new Event('message')
+        event.data = data
+        this.dispatchEvent(event)
+      , 0
+
   describe '#getWorkersPathForType',  ->
     it 'returns a relative worker path', ->
       architect = new Architect
