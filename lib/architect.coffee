@@ -7,8 +7,8 @@ for type in ['ajax', 'jsonp']
 class Architect
   constructor: ({ workersPath, workersSuffix } = {}) ->
     @jobs = {}
-    @workersPath = workersPath || '/workers'
-    @workersSuffix = workersSuffix || '_worker.min.js'
+    @workersPath = if workersPath then "/#{workersPath.replace(/^\//, '')}" else '/workers'
+    @workersSuffix = if workersSuffix then "#{workersSuffix.replace(/\.js$/, '')}.js" else '_worker.min.js'
 
   spawnWorker: (type) ->
     return this.getPolyfillForType(type) unless this.workersAreSupported()
@@ -18,10 +18,15 @@ class Architect
     "#{@workersPath}/#{type}#{@workersSuffix}"
 
   getPolyfillForType: (type) ->
-    new Polyfills[type]
+    klass = Polyfills[type]
 
-  workersAreSupported: ->
-    @workersSupported ?= !!window.Worker
+    unless klass
+      throw new Error("#{type} is not a valid type")
+
+    new klass
+
+  workersAreSupported: (scope = window) ->
+    @workersSupported ?= 'Worker' of scope
 
   # Short-lived workers
   work: ({ data, type, worker }) ->
@@ -32,19 +37,24 @@ class Architect
         worker.terminate()
         resolve(e.data)
 
-  jsonp: (data) ->
+  jsonp: (data = {}) ->
     if typeof data is 'string'
       data = { url: data }
 
+    throw new Error("Missing required “url” parameter") unless 'url' of data
     this.work(data: data, type: 'jsonp')
 
-  ajax: (options) ->
+  ajax: (options = {}) ->
+    throw new Error("Missing required “url” parameter") unless 'url' of options
     { success, error } = options
-    delete options.success
-    delete options.error
+
+    # Clone options without callback functions
+    opts = JSON.parse(JSON.stringify(options))
+    delete opts.success
+    delete opts.error
 
     new Promise (resolve, reject) =>
-      this.work(data: options, type: 'ajax').then (data) ->
+      this.work(data: opts, type: 'ajax').then (data) ->
         if 'success' of data
           resolve(data.success)
           success?(data.success)
