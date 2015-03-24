@@ -8,7 +8,7 @@ class Architect
   constructor: ({ workersPath, workersSuffix } = {}) ->
     @jobs = {}
     @workersPath = if workersPath then "/#{workersPath.replace(/^\//, '')}" else '/workers'
-    @workersSuffix = if workersSuffix then "#{workersSuffix.replace(/\.js$/, '')}.js" else '_worker.min.js'
+    @workersSuffix = workersSuffix || '_worker.min.js'
 
   spawnWorker: (type) ->
     return this.getPolyfillForType(type) unless this.workersAreSupported()

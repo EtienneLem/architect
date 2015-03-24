@@ -27,9 +27,6 @@ describe 'Architect', ->
       architect = new Architect(workersSuffix: 'specs.js')
       expect(architect.getWorkersPathForType('foo')).to.eq('/workers/foospecs.js')
 
-      architect = new Architect(workersSuffix: '_specs.bar')
-      expect(architect.getWorkersPathForType('foo')).to.eq('/workers/foo_specs.bar.js')
-
   describe '#getPolyfillForType',  ->
     it 'returns a worker polyfill', ->
       architect = new Architect
