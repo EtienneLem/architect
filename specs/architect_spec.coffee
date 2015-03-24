@@ -51,6 +51,23 @@ describe 'Architect', ->
         worker = @architect.spawnWorker('ajax')
         expect(worker.constructor.name).to.eq('AjaxWorkerPolyfill')
 
+  describe '#requireParams', ->
+    it 'throws an error when parameter is missing', ->
+      expect(=> @architect.requireParams('foo', {})).to.throw('Missing required “foo” parameter')
+      expect(=> @architect.requireParams('foo', { foo: 'bar' })).not.to.throw()
+
+    it 'handles multiple parameters', ->
+      expect(=> @architect.requireParams(['foo', 'bar'], {})).to.throw('Missing required “foo, bar” parameters')
+      expect(=> @architect.requireParams(['foo', 'bar'], { foo: 'bar' })).to.throw('Missing required “bar” parameter')
+      expect(=> @architect.requireParams(['foo', 'bar'], { foo: 'bar', bar: 'foo' })).not.to.throw()
+
+    it 'handles “||” operator', ->
+      expect(=> @architect.requireParams('foo || bar', {})).to.throw('Missing required “foo || bar” parameter')
+      expect(=> @architect.requireParams('foo||bar', { foo: 'bar' })).not.to.throw()
+      expect(=> @architect.requireParams('foo ||bar', { bar: 'foo' })).not.to.throw()
+      expect(=> @architect.requireParams(['foo || bar', 'twiz'], { bar: 'foo' })).to.throw('Missing required “twiz” parameter')
+      expect(=> @architect.requireParams(['foo || bar', 'twiz'], {})).to.throw('Missing required “foo || bar, twiz” parameter')
+
   describe 'Short-lived workers', ->
     describe '#work', ->
       it 'returns a promise', ->
@@ -125,11 +142,15 @@ describe 'Architect', ->
 
   describe 'Custom workers', ->
     describe '#custom', ->
-      describe 'when workers are supported', ->
-        beforeEach ->
-          simple.mock @architect, 'work', ->
-            new Promise (resolve) -> resolve({})
+      beforeEach ->
+        simple.mock @architect, 'work', ->
+          new Promise (resolve) -> resolve({})
 
+      it 'requires path: parameter', ->
+        expect(=> @architect.custom()).to.throw('Missing required “path” parameter')
+        expect(=> @architect.custom(path: '/build/workers/fake_worker.js')).not.to.throw()
+
+      describe 'when workers are supported', ->
         it 'is an alias for Architect#work(worker:)', ->
           @architect.custom(path: '/build/workers/fake_worker.js', data: { foo: 'bar' })
           expect(@architect.work.calls.length).to.eq(1)

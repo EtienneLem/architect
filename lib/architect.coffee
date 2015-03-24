@@ -28,8 +28,27 @@ class Architect
   workersAreSupported: (scope = window) ->
     @workersSupported ?= 'Worker' of scope
 
+  requireParams: (requiredParams, params = {}) ->
+    missing = []
+    requiredParams = [requiredParams] unless Array.isArray(requiredParams)
+
+    for requiredParam in requiredParams when !(requiredParam of params)
+      if (splits = requiredParam.split(/\s?\|\|\s?/)).length > 1
+        optional = []
+        for split in splits when (split of params)
+          optional.push(split)
+
+        missing.push(requiredParam) unless optional.length
+      else
+        missing.push(requiredParam)
+
+    return unless missing.length
+    throw new Error("Missing required “#{missing.join(', ')}” parameter#{if missing.length > 1 then 's' else ''}")
+
   # Short-lived workers
-  work: ({ data, type, worker }) ->
+  work: ({ data, type, worker } = {}) ->
+    this.requireParams('type || worker', arguments[0])
+
     new Promise (resolve) =>
       worker ||= this.spawnWorker(type)
       worker.postMessage(data)
@@ -41,11 +60,11 @@ class Architect
     if typeof data is 'string'
       data = { url: data }
 
-    throw new Error("Missing required “url” parameter") unless 'url' of data
+    this.requireParams('url', data)
     this.work(data: data, type: 'jsonp')
 
   ajax: (options = {}) ->
-    throw new Error("Missing required “url” parameter") unless 'url' of options
+    this.requireParams('url', options)
     { success, error } = options
 
     # Clone options without callback functions
@@ -63,7 +82,9 @@ class Architect
           error?(data.error)
 
   # Custom workers
-  custom: ({ path, data, fallback }) ->
+  custom: ({ path, data, fallback } = {}) ->
+    this.requireParams('path', arguments[0])
+
     new Promise (resolve, reject) =>
       if this.workersAreSupported()
         worker = new Worker(path)
