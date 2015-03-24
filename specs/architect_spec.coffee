@@ -72,6 +72,43 @@ describe 'Architect', ->
       expect(=> @architect.requireParams(['foo || bar', 'twiz'], { bar: 'foo' })).to.throw('Missing required “twiz” parameter')
       expect(=> @architect.requireParams(['foo || bar', 'twiz'], {})).to.throw('Missing required “foo || bar, twiz” parameter')
 
+  describe 'Threads', ->
+    it 'has a job qeueue', (done) ->
+      for i in [1..8]
+        @architect.work(worker: @architect.spawnWorker('fake'))
+
+      helpers.delay 0, =>
+        expect(Object.keys(@architect.jobs).length).to.eq(5)
+        expect(@architect.jobs).to.have.property(ii) for ii in [1..5]
+
+        helpers.delay 0, =>
+          expect(Object.keys(@architect.jobs).length).to.eq(3)
+          expect(@architect.jobs).to.have.property(ii) for ii in [6..8]
+
+          helpers.delay 0, done, =>
+            expect(Object.keys(@architect.jobs).length).to.eq(0)
+
+    it 'is configurable', (done) ->
+      architect = new Architect
+        workersPath: '/build/workers'
+        workersSuffix: '_worker.js'
+        threads: 3
+
+      for i in [1..8]
+        architect.work(worker: architect.spawnWorker('fake'))
+
+      helpers.delay 0, =>
+        expect(Object.keys(architect.jobs).length).to.eq(3)
+        expect(architect.jobs).to.have.property(ii) for ii in [1..3]
+
+        helpers.delay 0, =>
+          expect(Object.keys(architect.jobs).length).to.eq(3)
+          expect(architect.jobs).to.have.property(ii) for ii in [4..6]
+
+          helpers.delay 0, done, =>
+            expect(Object.keys(architect.jobs).length).to.eq(2)
+            expect(architect.jobs).to.have.property(ii) for ii in [7..8]
+
   describe 'Short-lived workers', ->
     describe '#work', ->
       it 'returns a promise', ->
@@ -81,12 +118,13 @@ describe 'Architect', ->
         result = @architect.work(type: 'fake', data: { foo: 'bar' })
         expect(result).to.eventually.deep.equal(foo: 'bar')
 
-      it 'can receive and work on an existing worker', ->
+      it 'can receive and work on an existing worker', (done) ->
         worker = @architect.spawnWorker('fake')
         simple.mock(worker, 'postMessage')
 
-        @architect.work(worker: worker)
-        expect(worker.postMessage.calls.length).to.eq(1)
+        @architect.work(worker: worker).then =>
+          expect(worker.postMessage.calls.length).to.eq(1)
+          done()
 
       it 'terminates a worker when done', (done) ->
         worker = @architect.spawnWorker('fake')

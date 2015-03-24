@@ -5,8 +5,10 @@ for type in ['ajax', 'jsonp']
 
 # Architect
 class Architect
-  constructor: ({ workersPath, workersSuffix } = {}) ->
+  constructor: ({ workersPath, workersSuffix, threads } = {}) ->
     @jobs = {}
+    @queue = []
+    @threads = threads || 5
     @workersPath = if workersPath then "/#{workersPath.replace(/^\//, '')}" else '/workers'
     @workersSuffix = workersSuffix || '_worker.min.js'
 
@@ -45,16 +47,23 @@ class Architect
     return unless missing.length
     throw new Error("Missing required “#{missing.join(', ')}” parameter#{if missing.length > 1 then 's' else ''}")
 
+  getJobId: ->
+    @jobId ||= 1
+    @jobId++
+
   # Short-lived workers
   work: ({ data, type, worker } = {}) ->
     this.requireParams('type || worker', arguments[0])
+    jobId = this.getJobId()
 
     new Promise (resolve) =>
-      worker ||= this.spawnWorker(type)
-      worker.postMessage(data)
-      worker.addEventListener 'message', (e) ->
-        worker.terminate()
-        resolve(e.data)
+      this.enqueue(jobId).then =>
+        @jobs[jobId] = worker ||= this.spawnWorker(type)
+        worker.postMessage(data)
+        worker.addEventListener 'message', (e) =>
+          this.clearJob(jobId)
+          worker.terminate()
+          resolve(e.data)
 
   jsonp: (data = {}) ->
     if typeof data is 'string'
@@ -93,6 +102,23 @@ class Architect
         resolve(fallback(data))
       else
         reject("Workers not supported and fallback not provided for #{path}")
+
+  # Threads
+  enqueue: (jobId) ->
+    new Promise (resolve) =>
+      setTimeout =>
+        if Object.keys(@jobs).length < @threads
+          resolve()
+        else
+          @queue.push({ resolve: resolve })
+      , 0
+
+  clearJob: (jobId) ->
+    delete @jobs[jobId]
+
+    return unless @queue.length
+    job = @queue.shift()
+    job.resolve()
 
 # Export
 module.exports = Architect
