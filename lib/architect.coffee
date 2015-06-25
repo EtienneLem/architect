@@ -14,9 +14,9 @@ class Architect
 
   spawnWorker: (type) ->
     return this.getPolyfillForType(type) unless this.workersAreSupported()
-    new Worker(this.getWorkersPathForType(type))
+    new Worker(this.getWorkerPathForType(type))
 
-  getWorkersPathForType: (type) ->
+  getWorkerPathForType: (type) ->
     "#{@workersPath}/#{type}#{@workersSuffix}"
 
   getPolyfillForType: (type) ->

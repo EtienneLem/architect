@@ -19,19 +19,19 @@ describe 'Architect', ->
     expect(architect.workersSuffix).to.eq('_worker.min.js')
     expect(architect.threads).to.eq(5)
 
-  describe '#getWorkersPathForType',  ->
+  describe '#getWorkerPathForType',  ->
     it 'returns a relative worker path', ->
       architect = new Architect
-      expect(architect.getWorkersPathForType('foo')).to.eq('/workers/foo_worker.min.js')
+      expect(architect.getWorkerPathForType('foo')).to.eq('/workers/foo_worker.min.js')
 
       architect = new Architect(workersPath: '/specs')
-      expect(architect.getWorkersPathForType('foo')).to.eq('/specs/foo_worker.min.js')
+      expect(architect.getWorkerPathForType('foo')).to.eq('/specs/foo_worker.min.js')
 
       architect = new Architect(workersPath: 'specs')
-      expect(architect.getWorkersPathForType('foo')).to.eq('/specs/foo_worker.min.js')
+      expect(architect.getWorkerPathForType('foo')).to.eq('/specs/foo_worker.min.js')
 
       architect = new Architect(workersSuffix: 'specs.js')
-      expect(architect.getWorkersPathForType('foo')).to.eq('/workers/foospecs.js')
+      expect(architect.getWorkerPathForType('foo')).to.eq('/workers/foospecs.js')
 
   describe '#getPolyfillForType',  ->
     it 'returns a worker polyfill', ->
