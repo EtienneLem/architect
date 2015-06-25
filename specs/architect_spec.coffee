@@ -1,4 +1,5 @@
 { Architect, simple, expect, helpers } = require('./spec_helper.coffee')
+{ delay, callbackSequence } = helpers
 
 describe 'Architect', ->
   beforeEach ->
@@ -83,15 +84,15 @@ describe 'Architect', ->
       for i in [1..8]
         @architect.work(worker: @architect.spawnWorker('fake'))
 
-      helpers.delay 0, =>
+      delay 0, =>
         expect(Object.keys(@architect.jobs).length).to.eq(5)
         expect(@architect.jobs).to.have.property(ii) for ii in [1..5]
 
-        helpers.delay 0, =>
+        delay 0, =>
           expect(Object.keys(@architect.jobs).length).to.eq(3)
           expect(@architect.jobs).to.have.property(ii) for ii in [6..8]
 
-          helpers.delay 0, done, =>
+          delay 0, done, =>
             expect(Object.keys(@architect.jobs).length).to.eq(0)
 
     it 'is configurable', (done) ->
@@ -103,15 +104,15 @@ describe 'Architect', ->
       for i in [1..8]
         architect.work(worker: architect.spawnWorker('fake'))
 
-      helpers.delay 0, =>
+      delay 0, =>
         expect(Object.keys(architect.jobs).length).to.eq(3)
         expect(architect.jobs).to.have.property(ii) for ii in [1..3]
 
-        helpers.delay 0, =>
+        delay 0, =>
           expect(Object.keys(architect.jobs).length).to.eq(3)
           expect(architect.jobs).to.have.property(ii) for ii in [4..6]
 
-          helpers.delay 0, done, =>
+          delay 0, done, =>
             expect(Object.keys(architect.jobs).length).to.eq(2)
             expect(architect.jobs).to.have.property(ii) for ii in [7..8]
 
@@ -156,7 +157,7 @@ describe 'Architect', ->
           expect(=> @architect.ajax(url: '')).not.to.throw()
 
         it 'supports $.ajax-style success/error options', (done) ->
-          simple.mock @architect, 'work', helpers.callbackSequence [
+          simple.mock @architect, 'work', callbackSequence [
             => new Promise (resolve) => resolve
               success: { foo: 'bar' }
             => new Promise (resolve) => resolve
@@ -169,12 +170,12 @@ describe 'Architect', ->
             error: simple.spy()
 
           @architect.ajax(options)
-          helpers.delay 0, =>
+          delay 0, =>
             expect(options.success.calls.length).to.eq(1)
             expect(options.error.calls.length).to.eq(0)
 
             @architect.ajax(options).catch(->)
-            helpers.delay 0, done, ->
+            delay 0, done, ->
               expect(options.success.calls.length).to.eq(1)
               expect(options.error.calls.length).to.eq(1)
 
