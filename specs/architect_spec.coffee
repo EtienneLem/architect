@@ -10,7 +10,7 @@ describe 'Architect', ->
     simple.mock window.Worker.prototype, 'postMessage', (data) ->
       setTimeout =>
         event = new Event('message')
-        event.data = data
+        event.data = { id: data.id, resolve: data.args }
         this.dispatchEvent(event)
       , 0
 
@@ -18,7 +18,6 @@ describe 'Architect', ->
     architect = new Architect
     expect(architect.workersPath).to.eq('/workers')
     expect(architect.workersSuffix).to.eq('_worker.min.js')
-    expect(architect.threads).to.eq(5)
 
   describe '#getWorkerPathForType',  ->
     it 'returns a relative worker path', ->
@@ -79,44 +78,7 @@ describe 'Architect', ->
       expect(=> @architect.requireParams(['foo || bar', 'twiz'], { bar: 'foo' })).to.throw('Missing required “twiz” parameter')
       expect(=> @architect.requireParams(['foo || bar', 'twiz'], {})).to.throw('Missing required “foo || bar, twiz” parameter')
 
-  describe 'Threads', ->
-    it 'has a job qeueue', (done) ->
-      for i in [1..8]
-        @architect.work(worker: @architect.spawnWorker('fake'))
-
-      delay 0, =>
-        expect(Object.keys(@architect.jobs).length).to.eq(5)
-        expect(@architect.jobs).to.have.property(ii) for ii in [1..5]
-
-        delay 0, =>
-          expect(Object.keys(@architect.jobs).length).to.eq(3)
-          expect(@architect.jobs).to.have.property(ii) for ii in [6..8]
-
-          delay 0, done, =>
-            expect(Object.keys(@architect.jobs).length).to.eq(0)
-
-    it 'is configurable', (done) ->
-      architect = new Architect
-        workersPath: '/build/workers'
-        workersSuffix: '_worker.js'
-        threads: 3
-
-      for i in [1..8]
-        architect.work(worker: architect.spawnWorker('fake'))
-
-      delay 0, =>
-        expect(Object.keys(architect.jobs).length).to.eq(3)
-        expect(architect.jobs).to.have.property(ii) for ii in [1..3]
-
-        delay 0, =>
-          expect(Object.keys(architect.jobs).length).to.eq(3)
-          expect(architect.jobs).to.have.property(ii) for ii in [4..6]
-
-          delay 0, done, =>
-            expect(Object.keys(architect.jobs).length).to.eq(2)
-            expect(architect.jobs).to.have.property(ii) for ii in [7..8]
-
-  describe 'Short-lived workers', ->
+  describe 'Workers', ->
     describe '#work', ->
       it 'returns a promise', ->
         promise = @architect.work(type: 'fake', data: { foo: 'bar' })
@@ -125,21 +87,42 @@ describe 'Architect', ->
         result = @architect.work(type: 'fake', data: { foo: 'bar' })
         expect(result).to.eventually.deep.equal(foo: 'bar')
 
-      it 'can receive and work on an existing worker', (done) ->
-        worker = @architect.spawnWorker('fake')
-        simple.mock(worker, 'postMessage')
+      it 'stores current workers', ->
+        expect(Object.keys(@architect.workers).length).to.equal(0)
+        @architect.work(type: 'fake', data: { foo: 'bar' })
 
-        @architect.work(worker: worker).then =>
-          expect(worker.postMessage.calls.length).to.eq(1)
-          done()
+        expect(Object.keys(@architect.workers).length).to.equal(1)
+        expect(@architect.workers.fake).to.be.defined
 
-      it 'terminates a worker when done', (done) ->
-        worker = @architect.spawnWorker('fake')
-        simple.mock(worker, 'terminate')
+      it 'spawns a worker when working for the first time', ->
+        simple.mock(@architect, 'spawnWorker')
+        @architect.work(type: 'fake', data: { foo: 'bar' })
 
-        @architect.work(worker: worker).then =>
-          expect(worker.terminate.calls.length).to.eq(1)
-          done()
+        expect(@architect.spawnWorker.calls.length).to.equal(1)
+
+      it 'reuses existing workers', (done) ->
+        simple.mock(@architect, 'spawnWorker')
+        simple.mock(@architect, 'handleMessage')
+
+        @architect.work(type: 'fake', data: { foo: 'bar' })
+        @architect.work(type: 'fake', data: { foo: 'bar' })
+
+        delay 0, done, =>
+          expect(@architect.spawnWorker.calls.length).to.equal(1)
+          expect(@architect.handleMessage.calls.length).to.equal(2)
+
+      it 'stores current jobs', ->
+        expect(Object.keys(@architect.jobs).length).to.equal(0)
+
+        @architect.work(type: 'fake', data: { foo: 'bar' })
+        @architect.work(type: 'fake', data: { foo: 'bar' })
+        @architect.work(type: 'fake', data: { foo: 'bar' })
+
+        expect(Object.keys(@architect.jobs).length).to.equal(3)
+        for i in [1..3]
+          expect(@architect.jobs).to.have.deep.property("#{i}.id", i)
+          expect(@architect.jobs).to.have.deep.property("#{i}.resolve")
+          expect(@architect.jobs).to.have.deep.property("#{i}.reject")
 
     describe 'aliases', ->
       beforeEach ->
@@ -159,9 +142,9 @@ describe 'Architect', ->
         it 'supports $.ajax-style success/error options', (done) ->
           simple.mock @architect, 'work', callbackSequence [
             => new Promise (resolve) => resolve
-              success: { foo: 'bar' }
-            => new Promise (resolve) => resolve
-              error: { bar: 'foo' }
+              id: 1, resolve: { foo: 'bar' }
+            => new Promise (resolve, reject) => reject
+              id: 2, reject: { bar: 'foo' }
           ]
 
           options =
@@ -200,11 +183,11 @@ describe 'Architect', ->
         expect(=> @architect.custom(path: '/build/workers/fake_worker.js')).not.to.throw()
 
       describe 'when workers are supported', ->
-        it 'is an alias for Architect#work(worker:)', ->
+        it 'is an alias for Architect#work(path:)', ->
           @architect.custom(path: '/build/workers/fake_worker.js', data: { foo: 'bar' })
           expect(@architect.work.calls.length).to.eq(1)
           expect(@architect.work.calls[0].args[0].data).to.deep.equal(foo: 'bar')
-          expect(@architect.work.calls[0].args[0].worker).to.be.an.instanceof(window.Worker)
+          expect(@architect.work.calls[0].args[0].path).to.equal('/build/workers/fake_worker.js')
 
       describe 'when workers are not supported', ->
         beforeEach -> simple.mock(@architect, 'workersAreSupported', -> false)

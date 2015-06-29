@@ -1,5 +1,5 @@
-handleSuccess = (result) -> postMessage(success: result)
-handleError = (xhr, dataType) ->
+handleSuccess = (id, result) -> postMessage(id: id, resolve: result)
+handleError = (id, xhr, dataType) ->
   # Returning xhr directly throws DataCloneError
   result = {}
   result[key] = xhr[key] for key in [
@@ -17,10 +17,11 @@ handleError = (xhr, dataType) ->
       result['response'] = if /^\s*$/.test(response) then null else JSON.parse(response)
   catch error
 
-  postMessage(error: result)
+  postMessage(id: id, reject: result)
 
 addEventListener 'message', (e) ->
-  { type, url, data, dataType, contentType, headers } = e.data
+  { id, args } = e.data
+  { type, url, data, dataType, contentType, headers } = args
 
   type ||= 'GET'
 
@@ -50,11 +51,11 @@ addEventListener 'message', (e) ->
           result = if /^\s*$/.test(result) then null else JSON.parse(result)
       catch error
 
-      return handleError(xhr, dataType) if error
-      handleSuccess(result)
+      return handleError(id, xhr, dataType) if error
+      handleSuccess(id, result)
 
     # Error
     else
-      handleError(xhr, dataType)
+      handleError(id, xhr, dataType)
 
   xhr.send(data)

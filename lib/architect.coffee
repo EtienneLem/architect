@@ -7,8 +7,7 @@ for type in ['ajax', 'jsonp']
 class Architect
   constructor: ({ workersPath, workersSuffix, threads } = {}) ->
     @jobs = {}
-    @queue = []
-    @threads = threads || 5
+    @workers = {}
     @workersPath = if workersPath then "/#{workersPath.replace(/^\//, '')}" else '/workers'
     @workersSuffix = workersSuffix || '_worker.min.js'
 
@@ -51,19 +50,31 @@ class Architect
     @jobId ||= 1
     @jobId++
 
-  # Short-lived workers
-  work: ({ data, type, worker } = {}) ->
-    this.requireParams('type || worker', arguments[0])
-    jobId = this.getJobId()
+  # Workers
+  work: ({ data, type, path } = {}) ->
+    this.requireParams('type || path', arguments[0])
 
-    new Promise (resolve) =>
-      this.enqueue(jobId).then =>
-        @jobs[jobId] = worker ||= this.spawnWorker(type)
-        worker.postMessage(data)
-        worker.addEventListener 'message', (e) =>
-          this.clearJob(jobId)
-          worker.terminate()
-          resolve(e.data)
+    new Promise (resolve, reject) =>
+      id = this.getJobId()
+      @jobs[id] = { id: id, resolve: resolve, reject: reject }
+
+      unless worker = @workers[type || path]
+        worker = if type then this.spawnWorker(type) else new Worker(path)
+        worker.addEventListener('message', this.handleMessage)
+        @workers[type || path] = worker
+
+      worker.postMessage(id: id, args: data)
+
+  handleMessage: (e) =>
+    { id, resolve, reject } = e.data
+
+    promise = @jobs[id]
+    delete @jobs[id]
+
+    if 'resolve' of e.data
+      promise.resolve(resolve)
+    else
+      promise.reject(new Error(reject))
 
   jsonp: (data = {}) ->
     if typeof data is 'string'
@@ -81,44 +92,22 @@ class Architect
     delete opts.success
     delete opts.error
 
+    # Support both ajax opts.success & promise resolving
     new Promise (resolve, reject) =>
-      this.work(data: opts, type: 'ajax').then (data) ->
-        if 'success' of data
-          resolve(data.success)
-          success?(data.success)
-        else if 'error' of data
-          reject(data.error)
-          error?(data.error)
+      this.work(data: opts, type: 'ajax')
+        .then (data) -> resolve(data); success?(data)
+        .catch (err) -> reject(err); error?(err)
 
-  # Custom workers
   custom: ({ path, data, fallback } = {}) ->
     this.requireParams('path', arguments[0])
 
     new Promise (resolve, reject) =>
       if this.workersAreSupported()
-        worker = new Worker(path)
-        this.work(data: data, worker: worker).then(resolve)
+        this.work(data: data, path: path).then(resolve)
       else if fallback
         resolve(fallback(data))
       else
         reject("Workers not supported and fallback not provided for #{path}")
-
-  # Threads
-  enqueue: (jobId) ->
-    new Promise (resolve) =>
-      setTimeout =>
-        if Object.keys(@jobs).length < @threads
-          resolve()
-        else
-          @queue.push({ resolve: resolve })
-      , 0
-
-  clearJob: (jobId) ->
-    delete @jobs[jobId]
-
-    return unless @queue.length
-    job = @queue.shift()
-    job.resolve()
 
 # Export
 module.exports = Architect
