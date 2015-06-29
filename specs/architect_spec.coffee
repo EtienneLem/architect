@@ -1,4 +1,4 @@
-{ Architect, simple, expect, helpers } = require('./spec_helper.coffee')
+{ Architect, simple, expect, helpers } = require('./spec_helper')
 { delay, callbackSequence } = helpers
 
 describe 'Architect', ->

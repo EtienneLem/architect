@@ -1,4 +1,4 @@
-WorkerPolyfill = require('../worker_polyfill.coffee')
+WorkerPolyfill = require('../worker_polyfill')
 
 class AjaxWorkerPolyfill extends WorkerPolyfill
   handleSuccess: (result) -> this.handleRequest(success: result)

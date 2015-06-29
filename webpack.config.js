@@ -28,7 +28,8 @@ var examples_and_specs = {
     root: __dirname,
     alias: {
       'architect': 'lib/architect.coffee'
-    }
+    },
+    extensions: ['', '.js', '.coffee']
   },
 }
 
@@ -51,6 +52,10 @@ var workers = function(dist) {
       loaders: [
         { test: /\.coffee$/, loader: 'coffee-loader' },
       ]
+    },
+
+    resolve: {
+      extensions: ['', '.js', '.coffee']
     },
   }
 
@@ -78,6 +83,10 @@ var architect = {
     loaders: [
       { test: /\.coffee$/, loader: 'coffee-loader' },
     ]
+  },
+
+  resolve: {
+    extensions: ['', '.js', '.coffee']
   },
 
   plugins: [

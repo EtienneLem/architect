@@ -1,7 +1,7 @@
 # Requires
 Polyfills = {}
 for type in ['ajax', 'jsonp']
-  Polyfills[type] = require("./architect/polyfills/workers/#{type}_worker_polyfill.coffee")
+  Polyfills[type] = require("./architect/polyfills/workers/#{type}_worker_polyfill")
 
 # Architect
 class Architect

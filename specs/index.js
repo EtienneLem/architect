@@ -1,1 +1,1 @@
-require('./architect_spec.coffee')
+require('./architect_spec')
