@@ -74,7 +74,7 @@ class Architect
     if 'resolve' of e.data
       promise.resolve(resolve)
     else
-      promise.reject(new Error(reject))
+      promise.reject(reject)
 
   jsonp: (data = {}) ->
     if typeof data is 'string'
