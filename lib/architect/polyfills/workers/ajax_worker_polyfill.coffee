@@ -10,14 +10,14 @@ class AjaxWorkerPolyfill extends WorkerPolyfill
     type ||= 'GET'
 
     headers ||= {}
-    headers['X-Requested-With'] = 'XMLHttpRequest'
+    headers['X-Requested-With'] ?= 'XMLHttpRequest'
 
     if contentType isnt false
       headers['Content-Type'] = contentType || 'application/x-www-form-urlencoded'
 
     xhr = new XMLHttpRequest
     xhr.open(type, url)
-    xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers
+    xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers when headerValue
 
     xhr.onreadystatechange = (e) =>
       return unless xhr.readyState is 4
