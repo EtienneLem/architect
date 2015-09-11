@@ -16,4 +16,13 @@ addEventListener 'message', (e) ->
     postMessage(id: id, resolve: args)
 
   request = if callbackAttribute then appendQuery(url, "#{callbackAttribute}=#{callbackFnName}") else url
-  importScripts(request)
+
+  try
+    importScripts(request)
+  catch err
+    postMessage
+      id: id
+      reject:
+        message: err.message
+        code: err.code
+        name: err.name
