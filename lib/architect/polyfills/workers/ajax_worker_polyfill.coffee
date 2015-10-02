@@ -17,6 +17,7 @@ class AjaxWorkerPolyfill extends WorkerPolyfill
 
     xhr = new XMLHttpRequest
     xhr.open(type, url)
+    xhr.withCredentials = args.withCredentials if 'withCredentials' of args
     xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers when headerValue
 
     xhr.onreadystatechange = (e) =>
