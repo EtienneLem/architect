@@ -4,8 +4,9 @@ class AjaxWorkerPolyfill extends WorkerPolyfill
   handleSuccess: (result) -> this.handleRequest(success: result)
   handleError:   (xhr) -> this.handleRequest(error: xhr)
 
-  postMessage: (data) ->
-    { type, url, data, dataType, contentType, headers } = data
+  postMessage: (e) ->
+    { id, args } = e
+    { type, url, data, dataType, contentType, headers } = args
 
     type ||= 'GET'
 

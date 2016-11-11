@@ -1,8 +1,9 @@
 WorkerPolyfill = require('../worker_polyfill')
 
 class JSONPWorkerPolyfill extends WorkerPolyfill
-  postMessage: (data) ->
-    { url, callbackAttribute, callbackFnName } = data
+  postMessage: (e) ->
+    { id, args } = e
+    { url, callbackAttribute, callbackFnName } = args
 
     if callbackAttribute is undefined
       callbackAttribute = 'callback'
