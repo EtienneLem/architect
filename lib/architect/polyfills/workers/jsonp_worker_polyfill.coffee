@@ -16,7 +16,7 @@ class JSONPWorkerPolyfill extends WorkerPolyfill
       delete window[callbackFnName]
       this.removeScript()
       args = if args.length > 1 then args else args[0]
-      this.handleRequest(args)
+      this.handleRequest(id: id, resolve: args)
 
     request = if callbackAttribute then this.appendQuery(url, "#{callbackAttribute}=#{callbackFnName}") else url
     this.addScript(request)

@@ -1,8 +1,8 @@
 WorkerPolyfill = require('../worker_polyfill')
 
 class AjaxWorkerPolyfill extends WorkerPolyfill
-  handleSuccess: (result) -> this.handleRequest(success: result)
-  handleError:   (xhr) -> this.handleRequest(error: xhr)
+  handleSuccess: (id, result) -> this.handleRequest(id: id, resolve: result)
+  handleError:   (id, xhr) -> this.handleRequest(id: id, reject: xhr)
 
   postMessage: (e) ->
     { id, args } = e
@@ -37,12 +37,12 @@ class AjaxWorkerPolyfill extends WorkerPolyfill
             result = if /^\s*$/.test(result) then null else JSON.parse(result)
         catch error
 
-        return this.handleError(xhr) if error
-        this.handleSuccess(result)
+        return this.handleError(id, xhr) if error
+        this.handleSuccess(id, result)
 
       # Error
       else
-        this.handleError(xhr)
+        this.handleError(id, xhr)
 
     xhr.send(data)
 
