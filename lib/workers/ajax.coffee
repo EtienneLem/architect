@@ -1,11 +1,29 @@
-WorkerPolyfill = require('../worker_polyfill')
+module.exports = ->
+  handleSuccess = (id, result) =>
+    this.postMessage(id: id, resolve: result)
 
-class AjaxWorkerPolyfill extends WorkerPolyfill
-  handleSuccess: (id, result) -> this.handleRequest(id: id, resolve: result)
-  handleError:   (id, xhr) -> this.handleRequest(id: id, reject: xhr)
+  handleError = (id, xhr, dataType) =>
+    # Returning xhr directly throws DataCloneError
+    result = {}
+    result[key] = xhr[key] for key in [
+      'response', 'responseType', 'responseText', 'responseXML', 'responseURL'
+      'status', 'statusText'
+      'withCredentials'
+      'readyState'
+      'timeout'
+    ]
 
-  postMessage: (e) ->
-    { id, args } = e
+    # Parse response if dataType is json
+    try
+      if dataType is 'json'
+        response = result['response']
+        result['response'] = if /^\s*$/.test(response) then null else JSON.parse(response)
+    catch error
+
+    this.postMessage(id: id, reject: result)
+
+  this.onmessage = (e) ->
+    { id, args } = e.data
     { type, url, data, dataType, contentType, headers } = args
 
     type ||= 'GET'
@@ -21,7 +39,7 @@ class AjaxWorkerPolyfill extends WorkerPolyfill
     xhr.withCredentials = args.withCredentials if 'withCredentials' of args
     xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers when headerValue
 
-    xhr.onreadystatechange = (e) =>
+    xhr.onreadystatechange = (e) ->
       return unless xhr.readyState is 4
 
       # Success
@@ -37,14 +55,11 @@ class AjaxWorkerPolyfill extends WorkerPolyfill
             result = if /^\s*$/.test(result) then null else JSON.parse(result)
         catch error
 
-        return this.handleError(id, xhr) if error
-        this.handleSuccess(id, result)
+        return handleError(id, xhr, dataType) if error
+        handleSuccess(id, result)
 
       # Error
       else
-        this.handleError(id, xhr)
+        handleError(id, xhr, dataType)
 
     xhr.send(data)
-
-# Export
-module.exports = AjaxWorkerPolyfill

@@ -13,7 +13,28 @@ architect.jsonp({
 // Ajax
 architect.ajax({ url: 'https://api.github.com/users/_etiennelem', dataType: 'json' })
   .then(function(e) { console.log('AJAX:', e) })
-  .catch(function(e) { console.log('AJAX ERROR:', e) })
+  .catch(function(e) { console.log('AJAX ERROR:', e.response.message) })
+
+// Custom
+architect.work({
+  type: 'foozle',
+  data: 'foo',
+  fn: function(data) {
+    return (data + 'zle').toUpperCase()
+  },
+}).then(function(e) { console.log('CUSTOM:', e) })
+
+architect.work({
+  type: 'promise',
+  data: 'foo',
+  fn: function(data) {
+    return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+        resolve(data + 'zle')
+      }, 1000)
+    })
+  },
+}).then(function(e) { console.log('CUSTOM (Promise):', e) })
 
 // $.ajax style
 architect.ajax({

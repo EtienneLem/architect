@@ -8,7 +8,8 @@
     "url": "https://github.com/EtienneLem/architect.git"
   },
   "scripts": {
-    "start": "./node_modules/.bin/gulp"
+    "start": "./node_modules/.bin/gulp",
+    "dist": "./node_modules/.bin/gulp dist"
   },
   "keywords": [
     "architect",

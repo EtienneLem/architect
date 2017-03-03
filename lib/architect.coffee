@@ -1,30 +1,37 @@
-# Requires
-Polyfills = {}
-for type in ['ajax', 'jsonp']
-  Polyfills[type] = require("./architect/polyfills/workers/#{type}_worker_polyfill")
-
 # Architect
 class Architect
-  constructor: ({ workersPath, workersSuffix, threads } = {}) ->
+  constructor: () ->
     @jobs = {}
     @workers = {}
-    @workersPath = if workersPath then "/#{workersPath.replace(/^\//, '')}" else '/workers'
-    @workersSuffix = workersSuffix || '_worker.min.js'
 
-  spawnWorker: (type) ->
-    return this.getPolyfillForType(type) unless this.workersAreSupported()
-    new Worker(this.getWorkerPathForType(type))
+  spawnWorker: ({ type, data, fn } = {}) ->
+    # Known type
+    try
+      work = require("./workers/#{type}")
 
-  getWorkerPathForType: (type) ->
-    "#{@workersPath}/#{type}#{@workersSuffix}"
+    # Unkown type
+    catch e
+      # Custom
+      if fn
+        work = require('./workers/custom')
 
-  getPolyfillForType: (type) ->
-    klass = Polyfills[type]
+      else
+        throw new Error("Unkown worker type “#{type}” and no fn provided")
 
-    unless klass
-      throw new Error("#{type} is not a valid type")
+    # Native worker
+    if this.workersAreSupported()
+      fnRaw = if fn then "work = #{fn.toString()};" else ''
+      workerRaw = "(#{work.toString()})()"
 
-    new klass
+      blob = new Blob([fnRaw, workerRaw])
+      blobURL = window.URL.createObjectURL(blob)
+
+      new Worker(blobURL)
+
+    # Polyfill
+    else
+      WorkerPolyfill = require('./workers/polyfill')
+      new WorkerPolyfill(work, fn)
 
   workersAreSupported: (scope = window) ->
     @workersSupported ?= 'Worker' of scope
@@ -51,19 +58,19 @@ class Architect
     @jobId++
 
   # Workers
-  work: ({ data, type, path } = {}) ->
-    this.requireParams('type || path', arguments[0])
+  work: ({ type, data, fn } = {}) ->
+    this.requireParams('type', arguments[0])
 
     new Promise (resolve, reject) =>
-      id = this.getJobId()
-      @jobs[id] = { id: id, resolve: resolve, reject: reject }
+      jobId = this.getJobId()
+      @jobs[jobId] = { id: jobId, resolve: resolve, reject: reject }
 
-      unless worker = @workers[type || path]
-        worker = if type then this.spawnWorker(type) else new Worker(path)
+      unless worker = @workers[type]
+        worker = this.spawnWorker({ type, data, fn })
         worker.addEventListener('message', this.handleMessage)
-        @workers[type || path] = worker
+        @workers[type] = worker
 
-      worker.postMessage(id: id, args: data)
+      worker.postMessage(id: jobId, args: data)
 
   handleMessage: (e) =>
     { id, resolve, reject } = e.data
@@ -97,17 +104,6 @@ class Architect
       this.work(data: opts, type: 'ajax')
         .then (data) -> resolve(data); success?(data)
         .catch (err) -> reject(err); error?(err)
-
-  custom: ({ path, data, fallback } = {}) ->
-    this.requireParams('path', arguments[0])
-
-    new Promise (resolve, reject) =>
-      if this.workersAreSupported()
-        this.work(data: data, path: path).then(resolve)
-      else if fallback
-        resolve(fallback(data))
-      else
-        reject("Workers not supported and fallback not provided for #{path}")
 
 # Export
 module.exports = Architect
