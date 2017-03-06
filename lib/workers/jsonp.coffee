@@ -18,8 +18,8 @@ module.exports = ->
 
     # globalScope is defined when in main thread
     # but undefined in WebWorker
-    try globalScope
-    catch e then globalScope = this
+    if typeof globalScope is 'undefined'
+      globalScope = self
 
     globalScope[callbackFnName] = =>
       delete globalScope[callbackFnName]
