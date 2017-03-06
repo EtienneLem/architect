@@ -25,6 +25,14 @@ architect.work({
 }).then(function(e) { console.log('CUSTOM:', e) })
 
 architect.work({
+  type: 'bar',
+  data: 'foo',
+  fn: `function(data) {
+    return (data + 'bar')
+  }`,
+}).then(function(e) { console.log('CUSTOM (STRING FN):', e) })
+
+architect.work({
   type: 'promise',
   data: 'foo',
   fn: function(data) {
