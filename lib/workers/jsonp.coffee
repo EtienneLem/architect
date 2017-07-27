@@ -12,7 +12,7 @@ module.exports = ->
       callbackAttribute = 'callback'
 
     if callbackFnName is undefined
-      callbackFnName = 'handleRequest'
+      callbackFnName = "handleRequest_#{id}"
 
     request = if callbackAttribute then appendQuery(url, "#{callbackAttribute}=#{callbackFnName}") else url
 
