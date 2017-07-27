@@ -4,7 +4,7 @@ class Architect
     @jobs = {}
     @workers = {}
 
-  spawnWorker: ({ type, data, fn } = {}) ->
+  spawnWorker: ({ type, data, fn, usePolyfill } = {}) ->
     # Known type
     try
       work = require("./workers/#{type}")
@@ -19,7 +19,7 @@ class Architect
         throw new Error("Unkown worker type “#{type}” and no fn provided")
 
     # Native worker
-    if this.workersAreSupported()
+    if !usePolyfill && this.workersAreSupported()
       fnRaw = if fn then "work = #{fn.toString()};" else ''
       workerRaw = "(#{work.toString()})()"
 
@@ -58,7 +58,7 @@ class Architect
     @jobId++
 
   # Workers
-  work: ({ type, data, fn } = {}) ->
+  work: ({ type, data, fn, usePolyfill } = {}) ->
     this.requireParams('type', arguments[0])
 
     new Promise (resolve, reject) =>
@@ -66,7 +66,7 @@ class Architect
       @jobs[jobId] = { id: jobId, resolve: resolve, reject: reject }
 
       unless worker = @workers[type]
-        worker = this.spawnWorker({ type, data, fn })
+        worker = this.spawnWorker({ type, data, fn, usePolyfill })
         worker.addEventListener('message', this.handleMessage)
         @workers[type] = worker
 
@@ -83,14 +83,14 @@ class Architect
     else
       promise.reject(reject)
 
-  jsonp: (data = {}) ->
+  jsonp: (data = {}, { usePolyfill } = {}) ->
     if typeof data is 'string'
       data = { url: data }
 
     this.requireParams('url', data)
-    this.work(data: data, type: 'jsonp')
+    this.work(data: data, type: 'jsonp', usePolyfill: usePolyfill)
 
-  ajax: (options = {}) ->
+  ajax: (options = {}, { usePolyfill } = {}) ->
     this.requireParams('url', options)
     { success, error } = options
 
@@ -101,7 +101,7 @@ class Architect
 
     # Support both ajax opts.success & promise resolving
     new Promise (resolve, reject) =>
-      this.work(data: opts, type: 'ajax')
+      this.work(data: opts, type: 'ajax', usePolyfill: usePolyfill)
         .then (data) -> resolve(data); success?(data)
         .catch (err) -> reject(err); error?(err)
 

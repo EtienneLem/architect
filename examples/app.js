@@ -6,9 +6,19 @@ architect = new Architect({
 })
 
 // JSONP
-architect.jsonp({
-  url: 'https://api.github.com/users/etiennelem'
-}).then(function(e) { console.log('JSONP:', e) })
+architect.jsonp({ url: 'https://api.github.com/users/etiennelem' })
+  .then(function(e) { console.log('JSONP:', e) })
+
+architect.jsonp({ url: 'https://api.github.com/users/etiennelem' }, { usePolyfill: true })
+  .then(function(e) { console.log('JSONP (Polyfill):', e) })
+
+architect.jsonp({ url: 'nope' })
+  .then(function(e) { console.log('JSONP (Shouldn’t log):', e) })
+  .catch(function(e) { console.log('JSONP Error:', e) })
+
+architect.jsonp({ url: 'nope' }, { usePolyfill: true })
+  .then(function(e) { console.log('JSONP (Shouldn’t log):', e) })
+  .catch(function(e) { console.log('JSONP Error (Polyfill):', e) })
 
 // Ajax
 architect.ajax({ url: 'https://api.github.com/users/_etiennelem', dataType: 'json' })
