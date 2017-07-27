@@ -2,7 +2,10 @@
 class Architect
   constructor: () ->
     @jobs = {}
-    @workers = {}
+    @workers = {
+      native: {}
+      polyfill: {}
+    }
 
   spawnWorker: ({ type, data, fn, usePolyfill } = {}) ->
     # Known type
@@ -65,10 +68,11 @@ class Architect
       jobId = this.getJobId()
       @jobs[jobId] = { id: jobId, resolve: resolve, reject: reject }
 
-      unless worker = @workers[type]
+      nativeOrPolyfill = if usePolyfill || !this.workersAreSupported() then 'polyfill' else 'native'
+      unless worker = @workers[nativeOrPolyfill][type]
         worker = this.spawnWorker({ type, data, fn, usePolyfill })
         worker.addEventListener('message', this.handleMessage)
-        @workers[type] = worker
+        @workers[nativeOrPolyfill][type] = worker
 
       worker.postMessage(id: jobId, args: data)
 
