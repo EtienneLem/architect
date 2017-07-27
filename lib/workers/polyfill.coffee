@@ -32,11 +32,17 @@ class WorkerPolyfill
       this.onmessage(data: e)
 
   importScripts: (request) ->
-    script = document.createElement('script')
-    script.src = request
+    # Not resolving a sucessful promise is on purpose
+    # There’s no use, calling the JSONP callback will
+    # resolve the worker job.
+    new Promise (resolve, reject) =>
+      script = document.createElement('script')
+      script.src = request
+      script.crossorigin = 'anonymous'
+      script.onerror = reject
 
-    document.head.appendChild(script)
-    @scripts[request] = script
+      document.head.appendChild(script)
+      @scripts[request] = script
 
   removeScripts: (request) ->
     return unless script = @scripts[request]

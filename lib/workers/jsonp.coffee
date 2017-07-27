@@ -31,7 +31,12 @@ module.exports = ->
       this.postMessage(id: id, resolve: args)
 
     try
-      this.importScripts(request)
+      # Promise when in main thread
+      # `undefined` when in WebWorker
+      this.importScripts(request)?.catch (err) =>
+        this.postMessage
+          id: id
+          reject: err
     catch err
       this.postMessage
         id: id

@@ -20,6 +20,10 @@ architect.jsonp({ url: 'nope' }, { usePolyfill: true })
   .then(function(e) { console.log('JSONP (Shouldn’t log):', e) })
   .catch(function(e) { console.log('JSONP Error (Polyfill):', e) })
 
+architect.jsonp({ url: 'http://foo' }, { usePolyfill: true })
+  .then(function(e) { console.log('JSONP (Shouldn’t log):', e) })
+  .catch(function(e) { console.log('JSONP Error (Polyfill):', e) })
+
 // Ajax
 architect.ajax({ url: 'https://api.github.com/users/_etiennelem', dataType: 'json' })
   .then(function(e) { console.log('AJAX:', e) })
