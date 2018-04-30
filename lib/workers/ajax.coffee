@@ -24,7 +24,7 @@ module.exports = ->
 
   this.onmessage = (e) ->
     { id, args } = e.data
-    { type, url, data, dataType, contentType, headers } = args
+    { type, url, data, dataType, contentType, headers, timeout } = args
 
     type ||= 'GET'
 
@@ -37,6 +37,7 @@ module.exports = ->
     xhr = new XMLHttpRequest
     xhr.open(type, url)
     xhr.withCredentials = args.withCredentials if 'withCredentials' of args
+    xhr.timeout = timeout || 0
     xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers when headerValue
 
     xhr.onreadystatechange = (e) ->
