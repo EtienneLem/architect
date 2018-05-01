@@ -25,13 +25,21 @@ architect = new Architect()
 //
 // Ajax
 //
-// architect.ajax({ url: 'https://api.github.com/users/_etiennelem', dataType: 'json' })
-//   .then(function(e) { console.log('AJAX:', e) })
-//   .catch(function(e) { console.log('AJAX ERROR:', e.response.message) })
 
+// Error
+architect.ajax({ url: 'https://foo' })
+  .then(() => { throw 'Should not throw' })
+  .catch(console.warn) // Has no `timeout`
+
+// Timeout
 architect.ajax({ url: 'https://httpbin.org/get', dataType: 'json', timeout: 16 })
+  .then(() => { throw 'Should not throw' })
+  .catch(console.warn) // Has `timeout`
+
+// Success
+architect.ajax({ url: 'https://httpbin.org/get', dataType: 'json' })
   .then(console.log)
-  .catch(console.warn)
+  .catch(() => { throw 'Should not throw' })
 
 //
 // Custom

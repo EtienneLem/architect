@@ -10,7 +10,6 @@ module.exports = ->
       'status', 'statusText'
       'withCredentials'
       'readyState'
-      'timeout'
     ]
 
     # Parse response if dataType is json
@@ -21,6 +20,12 @@ module.exports = ->
     catch error
 
     this.postMessage(id: id, reject: result)
+
+  handleTimeout = (id, xhr) =>
+    this.postMessage(id: id, reject: { status: 0, timeout: xhr.timeout })
+
+  handleAbort = (id, xhr) =>
+    this.postMessage(id: id, reject: { status: 0, abort: true })
 
   this.onmessage = (e) ->
     { id, args } = e.data
@@ -36,11 +41,11 @@ module.exports = ->
 
     xhr = new XMLHttpRequest
     xhr.open(type, url)
+    xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers when headerValue
     xhr.withCredentials = args.withCredentials if 'withCredentials' of args
     xhr.timeout = timeout || 0
-    xhr.setRequestHeader(headerName, headerValue) for headerName, headerValue of headers when headerValue
 
-    xhr.onreadystatechange = (e) ->
+    xhr.onload = (e) ->
       return unless xhr.readyState is 4
 
       # Success
@@ -55,12 +60,21 @@ module.exports = ->
           else if dataType is 'json'
             result = if /^\s*$/.test(result) then null else JSON.parse(result)
         catch error
+          return handleError(id, xhr, dataType)
 
-        return handleError(id, xhr, dataType) if error
         handleSuccess(id, result)
 
       # Error
       else
         handleError(id, xhr, dataType)
+
+    xhr.onerror = (e) ->
+      handleError(id, xhr, dataType)
+
+    xhr.ontimeout = (e) ->
+      handleTimeout(id, xhr)
+
+    xhr.onabort = (e) ->
+      handleAbort(id, xhr)
 
     xhr.send(data)
